@@ -1,5 +1,5 @@
 dc_env/
 __pycache__/
-.pyc
+*.pyc
 .env
-.db
+*.db
