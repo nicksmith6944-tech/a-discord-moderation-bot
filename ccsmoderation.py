@@ -329,7 +329,7 @@ async def purge(ctx, user_id: int, amount: int = None):
 async def ban(
     ctx,
     target: discord.User,
-    *,
+    ,
     reason: str = "No reason provided"
 ):
     await ctx.guild.ban(
