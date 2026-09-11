@@ -439,16 +439,15 @@ async def jail(ctx, member: discord.Member, *, reason: str = "No reason provided
     await member.remove_roles(*roles_to_remove)
     await member.add_roles(jail_role)
 
+    await ctx.send(
+        f"{member.mention} has been jailed for {reason}. "
+        f"Responsible Moderator: {ctx.author.mention}."
+    )
     log_moderation_action(
         ctx.guild.id,
         ctx.author.id,
         member.id,
         "jail"
-    )
-
-    await ctx.send(
-        f"{member.mention} has been jailed for {reason}. "
-        f"Responsible Moderator: {ctx.author.mention}."
     )
 
     await log_mod_action_channel(
