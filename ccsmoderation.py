@@ -409,11 +409,22 @@ async def mute(ctx, member: discord.Member, limit: str, *, reason: str = "No rea
         await ctx.send("❌ Invalid duration. Use formats like `10m`, `2h`, `1d`.")
         return
 
-    if duration > datetime.timedelta(days=28):
-        await ctx.send("Discord timeouts cannot exceed 28 days.")
+    if duration <= datetime.timedelta(0):
+        await ctx.send("❌ Duration must be greater than 0.")
         return
 
-    await member.timeout(duration, reason=reason)
+    if duration > datetime.timedelta(days=28):
+        await ctx.send("❌ Discord timeouts cannot exceed 28 days.")
+        return
+
+    try:
+        await member.timeout(duration, reason=reason)
+    except discord.Forbidden:
+        await ctx.send("❌ I don't have permission to mute this member, or their role is higher than mine.")
+        return
+    except discord.HTTPException as e:
+        await ctx.send(f"❌ Failed to mute the member: `{e}`")
+        return
 
     log_moderation_action(
         ctx.guild.id,
@@ -424,7 +435,7 @@ async def mute(ctx, member: discord.Member, limit: str, *, reason: str = "No rea
 
     await ctx.send(
         f"{member.mention} has been muted for {limit}. "
-        f"Reason: {reason}.Responsible Moderator: {ctx.author.mention}."
+        f"Reason: {reason}. Responsible Moderator: {ctx.author.mention}."
     )
 
     await log_mod_action_channel(
