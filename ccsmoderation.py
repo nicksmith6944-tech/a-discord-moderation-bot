@@ -445,17 +445,18 @@ async def jail(ctx, member: discord.Member, *, reason: str = "No reason provided
         member.id,
         "jail"
     )
-    await log_mod_action_channel(
-    ctx,
-    "Jail",
-    member,
-    reason
-   )
 
     await ctx.send(
         f"{member.mention} has been jailed for {reason}. "
         f"Responsible Moderator: {ctx.author.mention}."
-    )  
+    )
+
+    await log_mod_action_channel(
+        ctx,
+        "Jail",
+        member,
+        reason
+    )
 
 # --- REVERSAL COMMANDS (Excluded from MS Tracking) ---
 
@@ -627,7 +628,7 @@ async def ms(ctx, user_id: int = None):
 @bot.command()
 @commands.has_permissions(manage_nicknames=True)
 async def forcenick(ctx, target: str, *, nickname: str):
-    """Forcefully changes and locks a member's nickname."""
+    """Forces a member to have a specific nickname."""
 
     target = target.strip("<@!>")
 
@@ -698,6 +699,12 @@ async def forcenick(ctx, target: str, *, nickname: str):
             "forcenick"
         )
 
+        await ctx.send(
+            f"✅ {member.mention}'s nickname has been forced to "
+            f"`{nickname}`.\n"
+            f"Responsible Moderator: {ctx.author.mention}"
+        )
+
         # Mod-actions channel log
         await log_mod_action_channel(
             ctx,
@@ -708,12 +715,6 @@ async def forcenick(ctx, target: str, *, nickname: str):
                 f"Old nickname: `{old_nickname}`\n"
                 f"Forced nickname: `{nickname}`"
             )
-        )
-
-        await ctx.send(
-            f"✅ {member.mention}'s nickname has been forced to "
-            f"`{nickname}`.\n"
-            f"Responsible Moderator: {ctx.author.mention}"
         )
 
     except discord.Forbidden:
@@ -789,6 +790,11 @@ async def unforcenick(ctx, target: str):
     connection.commit()
     connection.close()
 
+    await ctx.send(
+        f"Removed the forced nickname from {member.mention}.\n"
+        f"They can now change their nickname normally."
+    )
+
     # Log the removal
     await log_mod_action_channel(
         ctx,
@@ -796,11 +802,6 @@ async def unforcenick(ctx, target: str):
         member,
         reason="Forced nickname removed",
         extra=f"Removed forced nickname: `{forced_nickname}`"
-    )
-
-    await ctx.send(
-        f"Removed the forced nickname from {member.mention}.\n"
-        f"They can now change their nickname normally."
     )
 
 @bot.command()
