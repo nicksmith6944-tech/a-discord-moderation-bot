@@ -326,29 +326,32 @@ async def purge(ctx, user_id: int, amount: int = None):
 
 @bot.command()
 @commands.has_permissions(ban_members=True)
-async def ban(
-    ctx,
-    target: discord.User,
-    ,
-    reason: str = "No reason provided"
-):
-    await ctx.guild.ban(
-        target,
-        reason=f"Banned by {ctx.author}: {reason}"
+async def ban(ctx, member: discord.Member, *, reason="No reason provided"):
+    await member.ban(reason=reason)
+
+    await ctx.send(
+        f"{member.mention} has been banned for {reason}. "
+        f"Responsible moderator: {ctx.author.mention}"
     )
 
-    log_moderation_action(
-        ctx.guild.id,
-        ctx.author.id,
-        target.id,
-        "ban"
+    cursor.execute(
+        "INSERT INTO mod_logs (guild_id, mod_id, target_id, action_type, timestamp) VALUES (?, ?, ?, ?, ?)",
+        (
+            ctx.guild.id,
+            ctx.author.id,
+            member.id,
+            "ban",
+            datetime.datetime.now(datetime.timezone.utc).isoformat()
+        )
     )
+    conn.commit()
+
     await log_mod_action_channel(
-    ctx,
-    "Ban",
-    target,
-    reason
-)
+        ctx,
+        "Ban",
+        member,
+        reason
+    )
 
 
     await ctx.send(
