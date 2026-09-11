@@ -404,8 +404,9 @@ async def warn(ctx, target: discord.User, *, reason: str = "No reason provided")
 @commands.has_permissions(moderate_members=True)
 async def mute(ctx, member: discord.Member, limit: str, *, reason: str = "No reason provided"):
     duration = parse_duration(limit)
-    if not duration:
-        await ctx.send("Invalid time format! Use numbers followed by `s` (seconds), `m` (minutes), `h` (hours), or `d` (days). Example: `30m`")
+
+    if duration is None:
+        await ctx.send("❌ Invalid duration. Use formats like `10m`, `2h`, `1d`.")
         return
 
     if duration > datetime.timedelta(days=28):
@@ -413,14 +414,25 @@ async def mute(ctx, member: discord.Member, limit: str, *, reason: str = "No rea
         return
 
     await member.timeout(duration, reason=reason)
-    log_moderation_action(ctx.guild.id, ctx.author.id, member.id, "mute")
-    await ctx.send(f"{member.mention} has been muted for {limit}. Reason: {reason}.Responsible Moderator: {ctx.author.mention}.")
+
+    log_moderation_action(
+        ctx.guild.id,
+        ctx.author.id,
+        member.id,
+        "mute"
+    )
+
+    await ctx.send(
+        f"{member.mention} has been muted for {limit}. "
+        f"Reason: {reason}.Responsible Moderator: {ctx.author.mention}."
+    )
+
     await log_mod_action_channel(
-    ctx,
-    "Mute",
-    member,
-    reason,
-    extra=f"Duration: `{limit}`"
+        ctx,
+        "Mute",
+        member,
+        reason,
+        extra=f"Duration: `{limit}`"
     )
 
 @bot.command()
